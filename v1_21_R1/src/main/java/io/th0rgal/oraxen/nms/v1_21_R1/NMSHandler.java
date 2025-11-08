@@ -77,9 +77,11 @@ import java.util.Optional;
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final GlyphHandler glyphHandler;
+    private final io.th0rgal.oraxen.nms.BlockHandler blockHandler;
 
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R1.GlyphHandler();
+        this.blockHandler = new io.th0rgal.oraxen.nms.v1_21_R1.BlockHandlerImpl();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -112,6 +114,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public GlyphHandler glyphHandler() {
         return glyphHandler;
+    }
+
+    @Override
+    public io.th0rgal.oraxen.nms.BlockHandler blockHandler() {
+        return blockHandler;
     }
 
     @Override

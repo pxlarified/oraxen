@@ -212,3 +212,7 @@ local.properties
 .sts4-cache/
 
 # Based on gitignore.io work
+.gitignore
+
+# Zencoder 
+.zencoder

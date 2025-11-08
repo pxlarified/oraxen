@@ -47,14 +47,21 @@ import java.util.*;
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final io.th0rgal.oraxen.nms.GlyphHandler glyphHandler;
+    private final io.th0rgal.oraxen.nms.BlockHandler blockHandler;
 
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_20_R2.GlyphHandler();
+        this.blockHandler = new io.th0rgal.oraxen.nms.v1_20_R2.BlockHandlerImpl();
     }
 
     @Override
     public GlyphHandler glyphHandler() {
         return glyphHandler;
+    }
+
+    @Override
+    public io.th0rgal.oraxen.nms.BlockHandler blockHandler() {
+        return blockHandler;
     }
 
     @Override

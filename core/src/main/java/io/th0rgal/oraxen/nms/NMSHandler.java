@@ -16,6 +16,8 @@ public interface NMSHandler {
 
     GlyphHandler glyphHandler();
 
+    BlockHandler blockHandler();
+
     boolean noteblockUpdatesDisabled();
 
     boolean tripwireUpdatesDisabled();
@@ -106,6 +108,11 @@ public interface NMSHandler {
         @Override
         public GlyphHandler glyphHandler() {
             return new GlyphHandler.EmptyGlyphHandler();
+        }
+
+        @Override
+        public BlockHandler blockHandler() {
+            return new BlockHandler.EmptyBlockHandler();
         }
 
         @Override

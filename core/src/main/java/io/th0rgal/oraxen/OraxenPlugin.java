@@ -1,7 +1,10 @@
 package io.th0rgal.oraxen;
 
+import io.th0rgal.oraxen.api.OraxenCustomBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
+import io.th0rgal.oraxen.block.BlockManager;
+import io.th0rgal.oraxen.block.CustomBlockEventListener;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
@@ -49,6 +52,7 @@ public class OraxenPlugin extends JavaPlugin {
     private HudManager hudManager;
     private SoundManager soundManager;
     private InvManager invManager;
+    private BlockManager blockManager;
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private PacketAdapter packetAdapter;
@@ -113,6 +117,12 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
+        
+        blockManager = new BlockManager();
+        blockManager.init();
+        blockManager.load();
+        Bukkit.getPluginManager().registerEvents(new CustomBlockEventListener(blockManager.getStateManager()), this);
+        
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -213,6 +223,10 @@ public class OraxenPlugin extends JavaPlugin {
 
     public InvManager getInvManager() {
         return invManager;
+    }
+
+    public BlockManager getBlockManager() {
+        return blockManager;
     }
 
     public ResourcePack getResourcePack() {

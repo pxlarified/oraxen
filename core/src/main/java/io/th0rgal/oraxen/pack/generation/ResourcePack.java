@@ -4,6 +4,10 @@ import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
+import io.th0rgal.oraxen.block.BlockAppearance;
+import io.th0rgal.oraxen.block.BlockManager;
+import io.th0rgal.oraxen.block.BlockProperties;
+import io.th0rgal.oraxen.block.CustomBlock;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Font;
@@ -97,6 +101,7 @@ public class ResourcePack {
         }
 
         generateFont();
+        generateBlocks();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             hideScoreboardNumbers();
         hideScoreboardOrTablistBackgrounds();
@@ -497,6 +502,33 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
         if (Settings.FIX_FORCE_UNICODE_GLYPHS.toBool())
             writeStringToVirtual("assets/minecraft/font", "uniform.json", output.toString());
+    }
+
+    private void generateBlocks() {
+        BlockManager blockManager = OraxenPlugin.get().getBlockManager();
+        Collection<CustomBlock> blocks = blockManager.getLoadedBlocks();
+
+        for (final CustomBlock block : blocks) {
+            String fullKey = block.getId().asString();
+            String blockId = fullKey.contains(":") ? fullKey.substring(fullKey.indexOf(":") + 1) : fullKey;
+            BlockAppearance appearance = block.getAppearance();
+            BlockProperties properties = block.getProperties();
+
+            if (appearance.shouldGenerateModel()) {
+                String modelName = appearance.getModelName();
+                BlockModelGenerator modelGenerator = new BlockModelGenerator(appearance);
+                writeStringToVirtual("assets/oraxen/models/block", modelName + ".json",
+                        modelGenerator.getJson().toString());
+            }
+
+            BlockStateGenerator stateGenerator = new BlockStateGenerator(
+                    appearance.getModelName(),
+                    properties,
+                    appearance
+            );
+            writeStringToVirtual("assets/minecraft/blockstates", blockId + ".json",
+                    stateGenerator.getJson().toString());
+        }
     }
 
     private void generateSound(List<VirtualFile> output) {
