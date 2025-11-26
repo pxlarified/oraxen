@@ -95,6 +95,8 @@ public enum Settings {
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
+    VALIDATE_PACK("Pack.generation.validate_pack"),
+    VALIDATOR_FAIL_ON_ERROR("Pack.generation.validator_fail_on_error"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
     TEXTURE_SLICER("Pack.generation.texture_slicer"),
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),

@@ -85,6 +85,8 @@ Pack:
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
+    validate_pack: true # Runs comprehensive validation checks on the resource pack (JSON syntax, texture resolutions, missing references, etc.)
+    validator_fail_on_error: false # If true, pack generation will abort if validation finds errors
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
     texture_slicer: true # Slices default-texture overrides into new 1.20.2 format
     atlas:

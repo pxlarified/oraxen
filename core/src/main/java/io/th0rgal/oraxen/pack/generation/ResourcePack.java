@@ -12,6 +12,8 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
+import io.th0rgal.oraxen.pack.generation.validator.ResourcePackValidator;
+import io.th0rgal.oraxen.pack.generation.validator.ValidatorReport;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.JukeboxDatapack;
 import io.th0rgal.oraxen.sound.SoundManager;
@@ -143,6 +145,17 @@ public class ResourcePack {
         Set<String> malformedTextures = new HashSet<>();
         if (Settings.VERIFY_PACK_FILES.toBool())
             malformedTextures = verifyPackFormatting(output);
+
+        if (Settings.VALIDATE_PACK.toBool()) {
+            ResourcePackValidator validator = new ResourcePackValidator(output);
+            ValidatorReport report = validator.validate();
+            report.printReport();
+
+            if (report.hasErrors() && Settings.VALIDATOR_FAIL_ON_ERROR.toBool()) {
+                Logs.logError("Pack validation failed with errors. Aborting pack generation.");
+                return;
+            }
+        }
 
         if (Settings.GENERATE_ATLAS_FILE.toBool())
             AtlasGenerator.generateAtlasFile(output, malformedTextures);

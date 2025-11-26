@@ -44,6 +44,7 @@ public class CommandsManager {
                         (new HudCommand()).getHudCommand(),
                         (new LogDumpCommand().getLogDumpCommand()),
                         (new VersionCommand()).getVersionCommand(),
+                        (new ValidatorCommand()).getValidatorCommand(),
                         (new AdminCommand()).getAdminCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
