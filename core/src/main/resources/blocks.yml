@@ -1,0 +1,55 @@
+blocks:
+  custom_stone:
+    visual_block: DEEPSLATE
+    settings:
+      hardness: 1.5
+      resistance: 6.0
+      friction: 0.6
+      luminance: 0
+      burnable: false
+      replaceable: false
+    properties:
+      powered:
+        type: boolean
+      lit:
+        type: boolean
+
+  custom_redstone_ore:
+    visual_block: REDSTONE_ORE
+    settings:
+      hardness: 3.0
+      resistance: 3.0
+      luminance: 9
+      burnable: false
+      replaceable: false
+      random_ticks: true
+    properties:
+      lit:
+        type: boolean
+
+  custom_directional_block:
+    visual_block: POLISHED_BLACKSTONE
+    settings:
+      hardness: 2.0
+      resistance: 2.0
+    properties:
+      facing:
+        type: direction
+        values:
+          - NORTH
+          - SOUTH
+          - EAST
+          - WEST
+          - UP
+          - DOWN
+
+  custom_integer_state:
+    visual_block: WATER
+    settings:
+      hardness: 1.0
+      resistance: 1.0
+    properties:
+      level:
+        type: integer
+        min: 0
+        max: 15

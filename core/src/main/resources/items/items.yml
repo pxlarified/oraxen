@@ -176,3 +176,35 @@ welcome_disk:
     parent_model: "item/handheld"
     textures:
       - default/welcome_disk.png
+
+custom_stone_item:
+  displayname: "<gradient:#8B8B8B:#A9A9A9><bold>Custom Stone"
+  material: STONE
+  injectID: false
+  Mechanics:
+    block_placing:
+      block_state_id: 0
+
+custom_redstone_ore_item:
+  displayname: "<gradient:#C41E3A:#FF6B6B><bold>Custom Redstone Ore"
+  material: REDSTONE_ORE
+  injectID: false
+  Mechanics:
+    block_placing:
+      block_state_id: 4
+
+custom_directional_block_item:
+  displayname: "<gradient:#4A90E2:#7B68EE><bold>Custom Directional Block"
+  material: CYAN_TERRACOTTA
+  injectID: false
+  Mechanics:
+    block_placing:
+      block_state_id: 6
+
+custom_integer_state_item:
+  displayname: "<gradient:#FFD700:#FFA500><bold>Custom Level Block"
+  material: OCHRE_FROGLIGHT
+  injectID: false
+  Mechanics:
+    block_placing:
+      block_state_id: 12

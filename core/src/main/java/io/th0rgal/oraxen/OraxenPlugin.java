@@ -2,6 +2,7 @@ package io.th0rgal.oraxen;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
+import io.th0rgal.oraxen.block.BlocksManager;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
@@ -52,6 +53,7 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private PacketAdapter packetAdapter;
+    private BlocksManager blocksManager;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
@@ -109,6 +111,8 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
+        blocksManager = new BlocksManager(configsManager);
+        blocksManager.loadBlocks();
         // CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
@@ -225,5 +229,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     public PacketAdapter getPacketAdapter() {
         return packetAdapter;
+    }
+
+    public BlocksManager getBlocksManager() {
+        return blocksManager;
     }
 }
