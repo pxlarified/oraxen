@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
@@ -135,8 +136,8 @@ public class FontManager {
 
     private void checkYamlKeys(File file) {
         File tempFile = new File(OraxenPlugin.get().getDataFolder() + "/glyphs/temp.yml");
-        try {
-            Files.copy(Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/" + file.getName())), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        try (InputStream resourceStream = Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/" + file.getName()))) {
+            Files.copy(resourceStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             if (!file.exists()) {
                 OraxenPlugin.get().saveResource("glyphs/" + file.getName(), false);
             }

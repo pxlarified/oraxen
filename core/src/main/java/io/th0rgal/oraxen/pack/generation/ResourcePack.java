@@ -651,7 +651,7 @@ public class ResourcePack {
             else if (CustomArmorType.getSetting() == CustomArmorType.SHADER && shaderArmorTextures.registerImage(file))
                 return;
             else
-                fis = new FileInputStream(file);
+                fis = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
 
             output.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
                     file.getName(), fis));

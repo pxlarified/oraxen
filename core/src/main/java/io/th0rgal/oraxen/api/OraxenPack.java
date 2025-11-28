@@ -9,8 +9,8 @@ import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -25,7 +25,8 @@ public class OraxenPack {
      */
     public static void addFilesToPack(File[] files) {
         for (File file : files) {
-            try (InputStream inputStream = new FileInputStream(file)) {
+            try {
+                InputStream inputStream = new ByteArrayInputStream(java.nio.file.Files.readAllBytes(file.toPath()));
                 VirtualFile virtualFile = new VirtualFile(file.getParent(), file.getName(), inputStream);
                 ResourcePack.addOutputFiles(virtualFile);
             } catch (IOException e) {
