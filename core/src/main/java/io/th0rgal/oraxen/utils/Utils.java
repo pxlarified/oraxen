@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import dev.jorel.commandapi.wrappers.IntegerRange;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
@@ -152,11 +152,11 @@ public class Utils {
         return Float.parseFloat(String.format("%.2f", roundedValue).replace(",", "."));
     }
 
-    public static IntegerRange parseToRange(String string) {
-        return parseToRange(string, new IntegerRange(1,1));
+    public static Range parseToRange(String string) {
+        return parseToRange(string, new Range(1, 1));
     }
 
-    public static IntegerRange parseToRange(String string, IntegerRange integerRange) {
+    public static Range parseToRange(String string, Range range) {
         int minAmount, maxAmount;
         try {
             minAmount = Integer.parseInt(StringUtils.substringBefore(string, ".."));
@@ -173,7 +173,7 @@ public class Utils {
         minAmount = Math.max(0, minAmount);
         maxAmount = Math.max(0, maxAmount);
 
-        return new IntegerRange(minAmount, maxAmount);
+        return new Range(minAmount, maxAmount);
     }
 
     public static <T> T getOrNull(List<T> list, int index) {

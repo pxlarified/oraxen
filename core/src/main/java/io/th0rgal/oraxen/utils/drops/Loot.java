@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.drops;
 
-import dev.jorel.commandapi.wrappers.IntegerRange;
+import io.th0rgal.oraxen.utils.Range;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
@@ -19,14 +19,14 @@ public class Loot {
     private final String sourceID;
     private ItemStack itemStack;
     private final double probability;
-    private final IntegerRange amount;
+    private final Range amount;
     private LinkedHashMap<String, Object> config;
 
     public Loot(LinkedHashMap<String, Object> config, String sourceID) {
         this.probability = Double.parseDouble(config.getOrDefault("probability", 1).toString());
         if (config.getOrDefault("amount", "") instanceof String amount && amount.contains("..")) {
             this.amount = Utils.parseToRange(amount);
-        } else this.amount = new IntegerRange(1,1);
+        } else this.amount = new Range(1, 1);
         this.config = config;
         this.sourceID = sourceID;
     }
@@ -34,7 +34,7 @@ public class Loot {
     public Loot(ItemStack itemStack, double probability) {
         this.itemStack = itemStack;
         this.probability = Math.min(1.0, probability);
-        this.amount = new IntegerRange(1,1);
+        this.amount = new Range(1, 1);
         this.sourceID = null;
     }
 
@@ -42,10 +42,10 @@ public class Loot {
         this.sourceID = sourceID;
         this.itemStack = itemStack;
         this.probability = Math.min(1.0, probability);
-        this.amount = new IntegerRange(minAmount, maxAmount);
+        this.amount = new Range(minAmount, maxAmount);
     }
 
-    public Loot(String sourceID, ItemStack itemStack, double probability, IntegerRange amount) {
+    public Loot(String sourceID, ItemStack itemStack, double probability, Range amount) {
         this.sourceID = sourceID;
         this.itemStack = itemStack;
         this.probability = Math.min(1.0, probability);
@@ -87,7 +87,7 @@ public class Loot {
         return probability;
     }
 
-    public IntegerRange amount() {
+    public Range amount() {
         return this.amount;
     }
 

@@ -80,7 +80,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R1.GlyphHandler();
+    }
 
+    @Override
+    public void initialize() {
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
 

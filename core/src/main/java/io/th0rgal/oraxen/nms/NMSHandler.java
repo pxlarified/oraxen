@@ -49,6 +49,9 @@ public interface NMSHandler {
      */
     void customBlockDefaultTools(Player player);
 
+    default void initialize() {
+    }
+
     default void foodComponent(ItemBuilder itemBuilder, ConfigurationSection foodSection) {
 
     }

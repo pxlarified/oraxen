@@ -48,6 +48,7 @@ public class NMSHandlers {
             try {
                 handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + version + ".NMSHandler")
                         .getConstructor().newInstance();
+                handler.initialize();
                 Logs.logSuccess("Version " + version + " has been detected.");
                 Logs.logInfo("Oraxen will use the NMSHandler for this version.");
                 Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
