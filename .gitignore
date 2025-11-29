@@ -212,3 +212,6 @@ local.properties
 .sts4-cache/
 
 # Based on gitignore.io work
+
+# Jan dev tools / debug
+.zen
