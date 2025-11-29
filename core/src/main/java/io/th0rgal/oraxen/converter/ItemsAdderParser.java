@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,27 +14,84 @@ import java.util.*;
 
 public class ItemsAdderParser {
 
-    public static Map<String, ItemsAdderItem> parseItemsAdderContents(@NotNull File contentsFolder) {
-        Map<String, ItemsAdderItem> items = new HashMap<>();
+    public static class ContentFolderData {
+        public final String folderName;
+        public final Map<String, ItemsAdderItem> items;
+        public final File texturesFolder;
+        public final File modelsFolder;
+        public final File soundsFolder;
         
-        if (!contentsFolder.exists() || !contentsFolder.isDirectory()) {
-            Logs.logError("Contents folder does not exist or is not a directory: " + contentsFolder.getAbsolutePath());
-            return items;
+        public ContentFolderData(String folderName, Map<String, ItemsAdderItem> items, 
+                                File texturesFolder, File modelsFolder, File soundsFolder) {
+            this.folderName = folderName;
+            this.items = items;
+            this.texturesFolder = texturesFolder;
+            this.modelsFolder = modelsFolder;
+            this.soundsFolder = soundsFolder;
+        }
+    }
+
+    public static List<ContentFolderData> parseItemsAdderContents(@NotNull File itemsAdderFolder) {
+        List<ContentFolderData> contentFolders = new ArrayList<>();
+        
+        if (!itemsAdderFolder.exists() || !itemsAdderFolder.isDirectory()) {
+            Logs.logError("ItemsAdder folder does not exist or is not a directory: " + itemsAdderFolder.getAbsolutePath());
+            return contentFolders;
         }
         
-        parseDirectory(contentsFolder, items);
+        File[] folders = itemsAdderFolder.listFiles(File::isDirectory);
+        if (folders == null || folders.length == 0) {
+            Logs.logError("No content folders found in: " + itemsAdderFolder.getAbsolutePath());
+            return contentFolders;
+        }
         
-        Logs.logSuccess("Parsed " + items.size() + " ItemsAdder items from " + contentsFolder.getName());
-        return items;
+        for (File folder : folders) {
+            if (folder.getName().startsWith(".")) continue;
+            
+            Logs.logInfo("Processing content folder: " + folder.getName());
+            ContentFolderData data = parseContentFolder(folder);
+            if (data != null && !data.items.isEmpty()) {
+                contentFolders.add(data);
+            }
+        }
+        
+        return contentFolders;
     }
     
-    private static void parseDirectory(@NotNull File directory, @NotNull Map<String, ItemsAdderItem> items) {
+    @Nullable
+    private static ContentFolderData parseContentFolder(@NotNull File contentFolder) {
+        String folderName = contentFolder.getName();
+        Map<String, ItemsAdderItem> items = new HashMap<>();
+        
+        File configsFolder = new File(contentFolder, "configs");
+        if (!configsFolder.exists()) {
+            Logs.logWarning("  No configs folder found in: " + folderName);
+            return null;
+        }
+        
+        parseConfigsDirectory(configsFolder, items);
+        
+        if (items.isEmpty()) {
+            Logs.logWarning("  No items found in: " + folderName);
+            return null;
+        }
+        
+        File texturesFolder = new File(contentFolder, "textures");
+        File modelsFolder = new File(contentFolder, "models");
+        File soundsFolder = new File(contentFolder, "sounds");
+        
+        Logs.logSuccess("  Found " + items.size() + " items in " + folderName);
+        
+        return new ContentFolderData(folderName, items, texturesFolder, modelsFolder, soundsFolder);
+    }
+    
+    private static void parseConfigsDirectory(@NotNull File directory, @NotNull Map<String, ItemsAdderItem> items) {
         File[] files = directory.listFiles();
         if (files == null) return;
         
         for (File file : files) {
             if (file.isDirectory()) {
-                parseDirectory(file, items);
+                parseConfigsDirectory(file, items);
             } else if (file.getName().endsWith(".yml") || file.getName().endsWith(".yaml")) {
                 parseYamlFile(file, items);
             }
@@ -49,10 +107,8 @@ public class ItemsAdderParser {
                 for (String key : itemsSection.getKeys(false)) {
                     ConfigurationSection itemSection = itemsSection.getConfigurationSection(key);
                     if (itemSection != null) {
-                        String fullId = key;
-                        ItemsAdderItem item = new ItemsAdderItem(fullId, itemSection);
-                        items.put(fullId, item);
-                        Logs.logInfo("  Found item: " + fullId);
+                        ItemsAdderItem item = new ItemsAdderItem(key, itemSection);
+                        items.put(key, item);
                     }
                 }
             }
@@ -62,27 +118,30 @@ public class ItemsAdderParser {
         }
     }
     
-    public static void copyResourcePack(@NotNull File sourceFolder, @NotNull File targetFolder) throws IOException {
-        if (!sourceFolder.exists()) {
-            Logs.logWarning("Source folder does not exist: " + sourceFolder.getAbsolutePath());
+    public static void copyAssets(@NotNull File sourceFolder, @NotNull File targetFolder, @NotNull String assetType) throws IOException {
+        if (!sourceFolder.exists() || !sourceFolder.isDirectory()) {
             return;
         }
         
         Path sourcePath = sourceFolder.toPath();
         Path targetPath = targetFolder.toPath();
         
+        if (!Files.exists(targetPath)) {
+            Files.createDirectories(targetPath);
+        }
+        
         Files.walk(sourcePath).forEach(source -> {
             try {
+                if (Files.isDirectory(source)) return;
+                
                 Path destination = targetPath.resolve(sourcePath.relativize(source));
-                if (Files.isDirectory(source)) {
-                    if (!Files.exists(destination)) {
-                        Files.createDirectories(destination);
-                    }
-                } else {
-                    Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                Path destinationParent = destination.getParent();
+                if (destinationParent != null && !Files.exists(destinationParent)) {
+                    Files.createDirectories(destinationParent);
                 }
+                Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                Logs.logError("Failed to copy: " + source);
+                Logs.logError("Failed to copy " + assetType + ": " + source.getFileName());
             }
         });
     }

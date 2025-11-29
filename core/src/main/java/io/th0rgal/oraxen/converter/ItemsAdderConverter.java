@@ -11,7 +11,8 @@ import java.util.*;
 
 public class ItemsAdderConverter {
 
-    public static void convertToOraxen(@NotNull Map<String, ItemsAdderItem> itemsAdderItems, 
+    public static void convertToOraxen(@NotNull String folderName,
+                                        @NotNull Map<String, ItemsAdderItem> itemsAdderItems, 
                                         @NotNull File outputFolder) throws IOException {
         
         if (!outputFolder.exists()) {
@@ -46,14 +47,13 @@ public class ItemsAdderConverter {
             }
         }
         
-        File outputFile = new File(itemsFolder, "converted_itemsadder.yml");
+        File outputFile = new File(itemsFolder, folderName + "_converted.yml");
         oraxenConfig.save(outputFile);
         
-        Logs.logSuccess("Converted " + convertedCount + " items to Oraxen format");
+        Logs.logSuccess("  Converted " + convertedCount + " items from " + folderName);
         if (skippedCount > 0) {
-            Logs.logWarning("Skipped " + skippedCount + " items");
+            Logs.logWarning("  Skipped " + skippedCount + " items");
         }
-        Logs.logSuccess("Output saved to: " + outputFile.getAbsolutePath());
     }
     
     private static void convertItem(@NotNull YamlConfiguration config, @NotNull ItemsAdderItem iaItem) {
@@ -74,11 +74,26 @@ public class ItemsAdderConverter {
             config.set(itemId + ".material", material.toUpperCase());
         }
         
+        boolean shouldGenerate = iaItem.shouldGenerateModel();
+        String modelPath = iaItem.getResourceModel();
         List<String> textures = iaItem.getResourceTextures();
-        if (textures != null && !textures.isEmpty()) {
-            config.set(itemId + ".Pack.generate_model", iaItem.shouldGenerateModel());
-            config.set(itemId + ".Pack.parent_model", "item/generated");
-            config.set(itemId + ".Pack.textures", textures);
+        
+        if (modelPath != null || (textures != null && !textures.isEmpty())) {
+            config.set(itemId + ".Pack.generate_model", shouldGenerate);
+            
+            if (shouldGenerate) {
+                config.set(itemId + ".Pack.parent_model", "item/generated");
+                
+                if (textures != null && !textures.isEmpty()) {
+                    config.set(itemId + ".Pack.textures", textures);
+                } else if (modelPath != null) {
+                    List<String> inferredTextures = new ArrayList<>();
+                    inferredTextures.add("item/" + modelPath);
+                    config.set(itemId + ".Pack.textures", inferredTextures);
+                }
+            } else if (modelPath != null) {
+                config.set(itemId + ".Pack.model", modelPath);
+            }
         }
         
         Map<String, Integer> enchants = iaItem.getEnchants();

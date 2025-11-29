@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
 public class ItemsAdderMigrator {
 
@@ -20,6 +20,7 @@ public class ItemsAdderMigrator {
     public boolean migrate() {
         try {
             Logs.logInfo("Starting ItemsAdder migration...");
+            Logs.logInfo("═══════════════════════════════════════");
             
             File converterFolder = new File(pluginDataFolder, "converter");
             File inputFolder = new File(converterFolder, "ItemsAdder");
@@ -28,14 +29,8 @@ public class ItemsAdderMigrator {
             if (!inputFolder.exists()) {
                 inputFolder.mkdirs();
                 Logs.logError("Input folder did not exist. Created: " + inputFolder.getAbsolutePath());
-                Logs.logError("Please place your ItemsAdder contents folder inside it and run the command again.");
-                return false;
-            }
-            
-            File[] contentsFolders = inputFolder.listFiles(File::isDirectory);
-            if (contentsFolders == null || contentsFolders.length == 0) {
-                Logs.logError("No ItemsAdder contents folders found in: " + inputFolder.getAbsolutePath());
-                Logs.logError("Please place your ItemsAdder contents folder(s) inside it.");
+                Logs.logError("Please place your ItemsAdder content folders inside it and run the command again.");
+                Logs.logError("Expected structure: converter/ItemsAdder/<content_folder>/configs/items.yml");
                 return false;
             }
             
@@ -48,47 +43,78 @@ public class ItemsAdderMigrator {
                 packOutputFolder.mkdirs();
             }
             
-            Map<String, ItemsAdderItem> allItems = new java.util.HashMap<>();
+            List<ItemsAdderParser.ContentFolderData> contentFolders = 
+                ItemsAdderParser.parseItemsAdderContents(inputFolder);
             
-            for (File contentsFolder : contentsFolders) {
-                Logs.logInfo("Processing contents folder: " + contentsFolder.getName());
+            if (contentFolders.isEmpty()) {
+                Logs.logError("No ItemsAdder content folders found in: " + inputFolder.getAbsolutePath());
+                Logs.logError("Expected structure: converter/ItemsAdder/<content_folder>/configs/items.yml");
+                return false;
+            }
+            
+            int totalItems = 0;
+            int totalTextures = 0;
+            int totalModels = 0;
+            int totalSounds = 0;
+            
+            for (ItemsAdderParser.ContentFolderData contentData : contentFolders) {
+                Logs.logInfo("Converting: " + contentData.folderName);
                 
-                File configFolder = new File(contentsFolder, "configs");
-                if (configFolder.exists()) {
-                    Map<String, ItemsAdderItem> items = ItemsAdderParser.parseItemsAdderContents(configFolder);
-                    allItems.putAll(items);
-                } else {
-                    Map<String, ItemsAdderItem> items = ItemsAdderParser.parseItemsAdderContents(contentsFolder);
-                    allItems.putAll(items);
+                ItemsAdderConverter.convertToOraxen(contentData.folderName, contentData.items, outputFolder);
+                totalItems += contentData.items.size();
+                
+                if (contentData.texturesFolder.exists()) {
+                    File targetTexturesFolder = new File(packOutputFolder, "textures/item");
+                    try {
+                        ItemsAdderParser.copyAssets(contentData.texturesFolder, targetTexturesFolder, "textures");
+                        int count = countFiles(contentData.texturesFolder);
+                        totalTextures += count;
+                        Logs.logInfo("  Copied " + count + " textures");
+                    } catch (IOException e) {
+                        Logs.logError("  Failed to copy textures: " + e.getMessage());
+                    }
                 }
                 
-                File resourcePackFolder = new File(contentsFolder, "resourcepack");
-                if (resourcePackFolder.exists()) {
-                    Logs.logInfo("Copying resource pack from: " + contentsFolder.getName());
+                if (contentData.modelsFolder.exists()) {
+                    File targetModelsFolder = new File(packOutputFolder, "models/item");
                     try {
-                        ItemsAdderParser.copyResourcePack(resourcePackFolder, packOutputFolder);
-                        Logs.logSuccess("Resource pack copied successfully");
+                        ItemsAdderParser.copyAssets(contentData.modelsFolder, targetModelsFolder, "models");
+                        int count = countFiles(contentData.modelsFolder);
+                        totalModels += count;
+                        Logs.logInfo("  Copied " + count + " models");
                     } catch (IOException e) {
-                        Logs.logError("Failed to copy resource pack: " + e.getMessage());
+                        Logs.logError("  Failed to copy models: " + e.getMessage());
+                    }
+                }
+                
+                if (contentData.soundsFolder.exists()) {
+                    File targetSoundsFolder = new File(packOutputFolder, "sounds");
+                    try {
+                        ItemsAdderParser.copyAssets(contentData.soundsFolder, targetSoundsFolder, "sounds");
+                        int count = countFiles(contentData.soundsFolder);
+                        totalSounds += count;
+                        Logs.logInfo("  Copied " + count + " sounds");
+                    } catch (IOException e) {
+                        Logs.logError("  Failed to copy sounds: " + e.getMessage());
                     }
                 }
             }
             
-            if (allItems.isEmpty()) {
-                Logs.logError("No ItemsAdder items found to convert!");
-                return false;
-            }
-            
-            Logs.logInfo("Converting " + allItems.size() + " items to Oraxen format...");
-            ItemsAdderConverter.convertToOraxen(allItems, outputFolder);
-            
             Logs.logSuccess("═══════════════════════════════════════");
             Logs.logSuccess("ItemsAdder migration completed!");
-            Logs.logSuccess("Output location: " + outputFolder.getAbsolutePath());
-            Logs.logSuccess("Items config: " + new File(outputFolder, "items/converted_itemsadder.yml").getAbsolutePath());
-            if (packOutputFolder.exists() && packOutputFolder.list() != null && packOutputFolder.list().length > 0) {
-                Logs.logSuccess("Resource pack: " + packOutputFolder.getAbsolutePath());
+            Logs.logSuccess("═══════════════════════════════════════");
+            Logs.logSuccess("Statistics:");
+            Logs.logSuccess("  Content folders processed: " + contentFolders.size());
+            Logs.logSuccess("  Items converted: " + totalItems);
+            Logs.logSuccess("  Textures copied: " + totalTextures);
+            Logs.logSuccess("  Models copied: " + totalModels);
+            if (totalSounds > 0) {
+                Logs.logSuccess("  Sounds copied: " + totalSounds);
             }
+            Logs.logSuccess("═══════════════════════════════════════");
+            Logs.logSuccess("Output location: " + outputFolder.getAbsolutePath());
+            Logs.logInfo("  Items: " + new File(outputFolder, "items/").getAbsolutePath());
+            Logs.logInfo("  Resource pack: " + packOutputFolder.getAbsolutePath());
             Logs.logSuccess("═══════════════════════════════════════");
             Logs.logInfo("Next steps:");
             Logs.logInfo("1. Review the converted items in: converter/output/items/");
@@ -105,5 +131,22 @@ public class ItemsAdderMigrator {
             }
             return false;
         }
+    }
+    
+    private int countFiles(@NotNull File folder) {
+        if (!folder.exists() || !folder.isDirectory()) return 0;
+        
+        int count = 0;
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    count++;
+                } else if (file.isDirectory()) {
+                    count += countFiles(file);
+                }
+            }
+        }
+        return count;
     }
 }
