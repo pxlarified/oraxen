@@ -82,6 +82,10 @@ public enum Message {
     DYE_WRONG_COLOR("command.dye.wrong_color"),
     DYE_FAILED("command.dye.failed"),
 
+    CONVERTING("command.convert.converting"),
+    CONVERT_SUCCESS("command.convert.success"),
+    CONVERT_FAILED("command.convert.failed"),
+
     HUD_NO_HUD("command.hud.no_hud"),
     HUD_TOGGLE_ON("command.hud.toggle_on"),
     HUD_TOGGLE_OFF("command.hud.toggle_off"),

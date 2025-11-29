@@ -12,47 +12,77 @@ import java.util.*;
 public class ItemsAdderConverter {
 
     public static void convertToOraxen(@NotNull String folderName,
-                                        @NotNull Map<String, ItemsAdderItem> itemsAdderItems, 
+                                        @NotNull Map<String, ItemsAdderItem> itemsAdderItems,
+                                        @NotNull Map<String, ItemsAdderFontImage> fontImages,
                                         @NotNull File outputFolder) throws IOException {
         
         if (!outputFolder.exists()) {
             outputFolder.mkdirs();
         }
         
-        File itemsFolder = new File(outputFolder, "items");
-        if (!itemsFolder.exists()) {
-            itemsFolder.mkdirs();
-        }
-        
         YamlConfiguration oraxenConfig = new YamlConfiguration();
-        int convertedCount = 0;
-        int skippedCount = 0;
+        YamlConfiguration glyphsConfig = new YamlConfiguration();
+        int convertedItemsCount = 0;
+        int skippedItemsCount = 0;
+        int convertedGlyphsCount = 0;
+        int skippedGlyphsCount = 0;
         
         for (Map.Entry<String, ItemsAdderItem> entry : itemsAdderItems.entrySet()) {
             ItemsAdderItem iaItem = entry.getValue();
             
             if (!iaItem.isEnabled()) {
                 Logs.logWarning("  Skipping disabled item: " + iaItem.getId());
-                skippedCount++;
+                skippedItemsCount++;
                 continue;
             }
             
             try {
                 convertItem(oraxenConfig, iaItem);
-                convertedCount++;
+                convertedItemsCount++;
             } catch (Exception e) {
                 Logs.logError("  Failed to convert item: " + iaItem.getId());
                 Logs.logError("  Error: " + e.getMessage());
-                skippedCount++;
+                skippedItemsCount++;
             }
         }
         
-        File outputFile = new File(itemsFolder, folderName + "_converted.yml");
-        oraxenConfig.save(outputFile);
+        for (Map.Entry<String, ItemsAdderFontImage> entry : fontImages.entrySet()) {
+            try {
+                convertGlyph(glyphsConfig, entry.getValue());
+                convertedGlyphsCount++;
+            } catch (Exception e) {
+                Logs.logError("  Failed to convert glyph: " + entry.getKey());
+                Logs.logError("  Error: " + e.getMessage());
+                skippedGlyphsCount++;
+            }
+        }
         
-        Logs.logSuccess("  Converted " + convertedCount + " items from " + folderName);
-        if (skippedCount > 0) {
-            Logs.logWarning("  Skipped " + skippedCount + " items");
+        if (convertedItemsCount > 0) {
+            File itemsFolder = new File(outputFolder, "items");
+            if (!itemsFolder.exists()) {
+                itemsFolder.mkdirs();
+            }
+            File outputFile = new File(itemsFolder, folderName + "_converted.yml");
+            oraxenConfig.save(outputFile);
+            Logs.logSuccess("  Converted " + convertedItemsCount + " items from " + folderName);
+        }
+        
+        if (convertedGlyphsCount > 0) {
+            File glyphsFolder = new File(outputFolder, "glyphs");
+            if (!glyphsFolder.exists()) {
+                glyphsFolder.mkdirs();
+            }
+            File glyphOutputFile = new File(glyphsFolder, folderName + "_glyphs.yml");
+            glyphsConfig.save(glyphOutputFile);
+            Logs.logSuccess("  Converted " + convertedGlyphsCount + " glyphs from " + folderName);
+        }
+        
+        if (skippedItemsCount > 0) {
+            Logs.logWarning("  Skipped " + skippedItemsCount + " items");
+        }
+        
+        if (skippedGlyphsCount > 0) {
+            Logs.logWarning("  Skipped " + skippedGlyphsCount + " glyphs");
         }
     }
     
@@ -85,14 +115,24 @@ public class ItemsAdderConverter {
                 config.set(itemId + ".Pack.parent_model", "item/generated");
                 
                 if (textures != null && !textures.isEmpty()) {
-                    config.set(itemId + ".Pack.textures", textures);
+                    List<String> cleanedTextures = new ArrayList<>();
+                    for (String texture : textures) {
+                        if (texture.startsWith("item/")) {
+                            cleanedTextures.add(texture.substring(5));
+                        } else {
+                            cleanedTextures.add(texture);
+                        }
+                    }
+                    config.set(itemId + ".Pack.textures", cleanedTextures);
                 } else if (modelPath != null) {
+                    String cleanedModel = modelPath.startsWith("item/") ? modelPath.substring(5) : modelPath;
                     List<String> inferredTextures = new ArrayList<>();
-                    inferredTextures.add("item/" + modelPath);
+                    inferredTextures.add(cleanedModel);
                     config.set(itemId + ".Pack.textures", inferredTextures);
                 }
             } else if (modelPath != null) {
-                config.set(itemId + ".Pack.model", modelPath);
+                String cleanedModel = modelPath.startsWith("item/") ? modelPath.substring(5) : modelPath;
+                config.set(itemId + ".Pack.model", cleanedModel);
             }
         }
         
@@ -210,5 +250,40 @@ public class ItemsAdderConverter {
                 }
             }
         }
+    }
+    
+    private static void convertGlyph(@NotNull YamlConfiguration config, @NotNull ItemsAdderFontImage fontImage) {
+        String glyphId = fontImage.getId();
+        String path = fontImage.getPath();
+        
+        if (path == null || path.isEmpty()) {
+            return;
+        }
+        
+        String texturePath = convertFontImagePath(path);
+        int ascent = fontImage.getYPosition();
+        int height = fontImage.getScaleRatio();
+        String permission = fontImage.getPermission();
+        
+        config.set(glyphId + ".texture", texturePath);
+        config.set(glyphId + ".ascent", ascent);
+        config.set(glyphId + ".height", height);
+        
+        if (permission != null && !permission.isEmpty()) {
+            config.set(glyphId + ".chat.placeholders", List.of(":" + glyphId + ":"));
+            config.set(glyphId + ".chat.permission", permission);
+        }
+    }
+    
+    private static String convertFontImagePath(@NotNull String path) {
+        if (path.endsWith(".png")) {
+            path = path.substring(0, path.length() - 4);
+        }
+        
+        if (path.startsWith("font/")) {
+            return path.substring(5);
+        }
+        
+        return path;
     }
 }

@@ -9,25 +9,33 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ItemsAdderParser {
 
     public static class ContentFolderData {
         public final String folderName;
         public final Map<String, ItemsAdderItem> items;
+        public final Map<String, ItemsAdderFontImage> fontImages;
         public final File texturesFolder;
         public final File modelsFolder;
         public final File soundsFolder;
+        public final File fontFolder;
         
         public ContentFolderData(String folderName, Map<String, ItemsAdderItem> items, 
-                                File texturesFolder, File modelsFolder, File soundsFolder) {
+                                Map<String, ItemsAdderFontImage> fontImages,
+                                File texturesFolder, File modelsFolder, File soundsFolder, File fontFolder) {
             this.folderName = folderName;
             this.items = items;
+            this.fontImages = fontImages;
             this.texturesFolder = texturesFolder;
             this.modelsFolder = modelsFolder;
             this.soundsFolder = soundsFolder;
+            this.fontFolder = fontFolder;
         }
     }
 
@@ -50,7 +58,7 @@ public class ItemsAdderParser {
             
             Logs.logInfo("Processing content folder: " + folder.getName());
             ContentFolderData data = parseContentFolder(folder);
-            if (data != null && !data.items.isEmpty()) {
+            if (data != null && (!data.items.isEmpty() || !data.fontImages.isEmpty())) {
                 contentFolders.add(data);
             }
         }
@@ -62,6 +70,7 @@ public class ItemsAdderParser {
     private static ContentFolderData parseContentFolder(@NotNull File contentFolder) {
         String folderName = contentFolder.getName();
         Map<String, ItemsAdderItem> items = new HashMap<>();
+        Map<String, ItemsAdderFontImage> fontImages = new HashMap<>();
         
         File configsFolder = new File(contentFolder, "configs");
         if (!configsFolder.exists()) {
@@ -69,46 +78,65 @@ public class ItemsAdderParser {
             return null;
         }
         
-        parseConfigsDirectory(configsFolder, items);
+        parseConfigsDirectory(configsFolder, items, fontImages);
         
-        if (items.isEmpty()) {
-            Logs.logWarning("  No items found in: " + folderName);
+        if (items.isEmpty() && fontImages.isEmpty()) {
+            Logs.logWarning("  No items or font images found in: " + folderName);
             return null;
         }
         
         File texturesFolder = new File(contentFolder, "textures");
         File modelsFolder = new File(contentFolder, "models");
         File soundsFolder = new File(contentFolder, "sounds");
+        File fontFolder = new File(texturesFolder, "font");
         
-        Logs.logSuccess("  Found " + items.size() + " items in " + folderName);
+        if (!items.isEmpty()) {
+            Logs.logSuccess("  Found " + items.size() + " items in " + folderName);
+        }
+        if (!fontImages.isEmpty()) {
+            Logs.logSuccess("  Found " + fontImages.size() + " font images in " + folderName);
+        }
         
-        return new ContentFolderData(folderName, items, texturesFolder, modelsFolder, soundsFolder);
+        return new ContentFolderData(folderName, items, fontImages, texturesFolder, modelsFolder, soundsFolder, fontFolder);
     }
     
-    private static void parseConfigsDirectory(@NotNull File directory, @NotNull Map<String, ItemsAdderItem> items) {
+    private static void parseConfigsDirectory(@NotNull File directory, @NotNull Map<String, ItemsAdderItem> items, 
+                                               @NotNull Map<String, ItemsAdderFontImage> fontImages) {
         File[] files = directory.listFiles();
         if (files == null) return;
         
         for (File file : files) {
             if (file.isDirectory()) {
-                parseConfigsDirectory(file, items);
+                parseConfigsDirectory(file, items, fontImages);
             } else if (file.getName().endsWith(".yml") || file.getName().endsWith(".yaml")) {
-                parseYamlFile(file, items);
+                parseYamlFile(file, items, fontImages);
             }
         }
     }
     
-    private static void parseYamlFile(@NotNull File file, @NotNull Map<String, ItemsAdderItem> items) {
+    private static void parseYamlFile(@NotNull File file, @NotNull Map<String, ItemsAdderItem> items,
+                                      @NotNull Map<String, ItemsAdderFontImage> fontImages) {
         try {
             YamlConfiguration config = OraxenYaml.loadConfiguration(file);
-            ConfigurationSection itemsSection = config.getConfigurationSection("items");
             
+            ConfigurationSection itemsSection = config.getConfigurationSection("items");
             if (itemsSection != null) {
                 for (String key : itemsSection.getKeys(false)) {
                     ConfigurationSection itemSection = itemsSection.getConfigurationSection(key);
                     if (itemSection != null) {
                         ItemsAdderItem item = new ItemsAdderItem(key, itemSection);
                         items.put(key, item);
+                    }
+                }
+            }
+            
+            ConfigurationSection fontImagesSection = config.getConfigurationSection("font_images");
+            if (fontImagesSection != null) {
+                for (String key : fontImagesSection.getKeys(false)) {
+                    ConfigurationSection fontImageSection = fontImagesSection.getConfigurationSection(key);
+                    if (fontImageSection != null) {
+                        ItemsAdderFontImage fontImage = new ItemsAdderFontImage(key, fontImageSection);
+                        fontImages.put(key, fontImage);
                     }
                 }
             }
@@ -139,10 +167,55 @@ public class ItemsAdderParser {
                 if (destinationParent != null && !Files.exists(destinationParent)) {
                     Files.createDirectories(destinationParent);
                 }
-                Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                
+                if ("models".equals(assetType) && source.toString().endsWith(".json")) {
+                    processModelFile(source.toFile(), destination.toFile());
+                } else {
+                    Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                }
             } catch (IOException e) {
                 Logs.logError("Failed to copy " + assetType + ": " + source.getFileName());
             }
         });
+    }
+    
+    private static void processModelFile(@NotNull File sourceFile, @NotNull File destinationFile) throws IOException {
+        String content = Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
+        
+        Pattern pattern = Pattern.compile(":\\s*\"([^\"]+)\"");
+        Matcher matcher = pattern.matcher(content);
+        StringBuffer sb = new StringBuffer();
+        
+        while (matcher.find()) {
+            String texturePath = matcher.group(1);
+            if (texturePath.startsWith("#")) {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(": \"" + texturePath + "\""));
+                continue;
+            }
+            String strippedPath = stripNamespace(texturePath);
+            String formattedPath = formatTexturePath(strippedPath);
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(": \"" + formattedPath + "\""));
+        }
+        matcher.appendTail(sb);
+        
+        Files.createDirectories(destinationFile.toPath().getParent());
+        Files.writeString(destinationFile.toPath(), sb.toString(), StandardCharsets.UTF_8);
+    }
+    
+    private static String stripNamespace(@NotNull String path) {
+        if (path.contains(":")) {
+            return path.substring(path.indexOf(":") + 1);
+        }
+        return path;
+    }
+    
+    private static String formatTexturePath(@NotNull String path) {
+        if (path.startsWith("item/")) {
+            return path.substring(5);
+        }
+        if (path.startsWith("font/")) {
+            return path.substring(5);
+        }
+        return path;
     }
 }

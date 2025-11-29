@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class ItemsAdderMigrator {
@@ -38,11 +40,6 @@ public class ItemsAdderMigrator {
                 outputFolder.mkdirs();
             }
             
-            File packOutputFolder = new File(outputFolder, "pack");
-            if (!packOutputFolder.exists()) {
-                packOutputFolder.mkdirs();
-            }
-            
             List<ItemsAdderParser.ContentFolderData> contentFolders = 
                 ItemsAdderParser.parseItemsAdderContents(inputFolder);
             
@@ -56,27 +53,34 @@ public class ItemsAdderMigrator {
             int totalTextures = 0;
             int totalModels = 0;
             int totalSounds = 0;
+            int totalFonts = 0;
+            File packOutputFolder = new File(outputFolder, "pack");
             
             for (ItemsAdderParser.ContentFolderData contentData : contentFolders) {
                 Logs.logInfo("Converting: " + contentData.folderName);
                 
-                ItemsAdderConverter.convertToOraxen(contentData.folderName, contentData.items, outputFolder);
+                ItemsAdderConverter.convertToOraxen(contentData.folderName, contentData.items, contentData.fontImages, outputFolder);
                 totalItems += contentData.items.size();
                 
                 if (contentData.texturesFolder.exists()) {
-                    File targetTexturesFolder = new File(packOutputFolder, "textures/item");
+                    if (!packOutputFolder.exists()) {
+                        packOutputFolder.mkdirs();
+                    }
+                    File targetTexturesFolder = new File(packOutputFolder, "textures");
                     try {
-                        ItemsAdderParser.copyAssets(contentData.texturesFolder, targetTexturesFolder, "textures");
-                        int count = countFiles(contentData.texturesFolder);
+                        int count = copyTexturesExcludingFonts(contentData.texturesFolder, targetTexturesFolder);
                         totalTextures += count;
-                        Logs.logInfo("  Copied " + count + " textures");
+                        Logs.logInfo("  Copied " + count + " item textures");
                     } catch (IOException e) {
-                        Logs.logError("  Failed to copy textures: " + e.getMessage());
+                        Logs.logError("  Failed to copy item textures: " + e.getMessage());
                     }
                 }
                 
                 if (contentData.modelsFolder.exists()) {
-                    File targetModelsFolder = new File(packOutputFolder, "models/item");
+                    if (!packOutputFolder.exists()) {
+                        packOutputFolder.mkdirs();
+                    }
+                    File targetModelsFolder = new File(packOutputFolder, "models");
                     try {
                         ItemsAdderParser.copyAssets(contentData.modelsFolder, targetModelsFolder, "models");
                         int count = countFiles(contentData.modelsFolder);
@@ -88,6 +92,9 @@ public class ItemsAdderMigrator {
                 }
                 
                 if (contentData.soundsFolder.exists()) {
+                    if (!packOutputFolder.exists()) {
+                        packOutputFolder.mkdirs();
+                    }
                     File targetSoundsFolder = new File(packOutputFolder, "sounds");
                     try {
                         ItemsAdderParser.copyAssets(contentData.soundsFolder, targetSoundsFolder, "sounds");
@@ -98,6 +105,21 @@ public class ItemsAdderMigrator {
                         Logs.logError("  Failed to copy sounds: " + e.getMessage());
                     }
                 }
+                
+                if (contentData.fontFolder.exists()) {
+                    if (!packOutputFolder.exists()) {
+                        packOutputFolder.mkdirs();
+                    }
+                    File targetFontFolder = new File(packOutputFolder, "textures");
+                    try {
+                        ItemsAdderParser.copyAssets(contentData.fontFolder, targetFontFolder, "fonts");
+                        int count = countFiles(contentData.fontFolder);
+                        totalFonts += count;
+                        Logs.logInfo("  Copied " + count + " font files");
+                    } catch (IOException e) {
+                        Logs.logError("  Failed to copy fonts: " + e.getMessage());
+                    }
+                }
             }
             
             Logs.logSuccess("═══════════════════════════════════════");
@@ -106,6 +128,7 @@ public class ItemsAdderMigrator {
             Logs.logSuccess("Statistics:");
             Logs.logSuccess("  Content folders processed: " + contentFolders.size());
             Logs.logSuccess("  Items converted: " + totalItems);
+            Logs.logSuccess("  Glyphs converted: " + totalFonts);
             Logs.logSuccess("  Textures copied: " + totalTextures);
             Logs.logSuccess("  Models copied: " + totalModels);
             if (totalSounds > 0) {
@@ -148,5 +171,57 @@ public class ItemsAdderMigrator {
             }
         }
         return count;
+    }
+    
+    private int copyTexturesExcludingFonts(@NotNull File sourceFolder, @NotNull File targetFolder) throws IOException {
+        if (!sourceFolder.exists() || !sourceFolder.isDirectory()) {
+            return 0;
+        }
+        
+        File fontFolder = new File(sourceFolder, "font");
+        int count = 0;
+        File[] files = sourceFolder.listFiles();
+        
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().equals("font")) {
+                    continue;
+                }
+                
+                if (file.isDirectory()) {
+                    count += countAndCopyDirectory(file, new File(targetFolder, file.getName()), fontFolder);
+                } else {
+                    count += countAndCopyFile(file, new File(targetFolder, file.getName()));
+                }
+            }
+        }
+        return count;
+    }
+    
+    private int countAndCopyDirectory(@NotNull File source, @NotNull File target, @NotNull File fontFolderToExclude) throws IOException {
+        if (!target.exists()) {
+            target.mkdirs();
+        }
+        
+        int count = 0;
+        File[] files = source.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    count += countAndCopyDirectory(file, new File(target, file.getName()), fontFolderToExclude);
+                } else {
+                    count += countAndCopyFile(file, new File(target, file.getName()));
+                }
+            }
+        }
+        return count;
+    }
+    
+    private int countAndCopyFile(@NotNull File source, @NotNull File target) throws IOException {
+        if (!target.getParentFile().exists()) {
+            target.getParentFile().mkdirs();
+        }
+        Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        return 1;
     }
 }
