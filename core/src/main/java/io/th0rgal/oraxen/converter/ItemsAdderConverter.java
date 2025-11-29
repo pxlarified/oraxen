@@ -273,6 +273,8 @@ public class ItemsAdderConverter {
             config.set(glyphId + ".chat.placeholders", List.of(":" + glyphId + ":"));
             config.set(glyphId + ".chat.permission", permission);
         }
+        
+        config.set(glyphId + ".is_emoji", true);
     }
     
     private static String convertFontImagePath(@NotNull String path) {
