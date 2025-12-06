@@ -95,7 +95,7 @@ public class DuplicationHandler {
                         newTextures.add(entry.getKey(), entry.getValue());
             }
         }
-        return null;
+        return newTextures;
     }
 
     private static String getItemParent(List<JsonObject> duplicates) {

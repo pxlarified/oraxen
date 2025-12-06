@@ -43,7 +43,7 @@ public class PackMerger {
             try {
                 mergePackZip(packZip, mergedFilesMap);
             } catch (IOException e) {
-                Logs.logError("Failed to merge pack: <red>" + packZip.getName() + "</red>");
+                Logs.logError("Failed to merge pack: <red>" + packZip.getName() + "</red> - " + e.getMessage());
                 e.printStackTrace();
             }
         }

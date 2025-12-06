@@ -48,7 +48,7 @@ public class SelfHost implements HostingProvider {
             this.packUrl = "http://" + domain + "/pack.zip";
             return true;
         } catch (Exception e) {
-            Logs.logError("Failed to self-host the resource pack");
+            Logs.logError("Failed to self-host the resource pack: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -141,6 +141,10 @@ public class SelfHost implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
+        if (sha1 == null) {
+            Logs.logError("SHA1 hash not calculated for resource pack");
+            return new byte[0];
+        }
         int len = sha1.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {

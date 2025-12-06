@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,7 +34,9 @@ public class ZipUtils {
             }
 
         } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
+            Logs.logError("Failed to write resource pack ZIP file");
+            if (Settings.DEBUG.toBool())
+                ex.printStackTrace();
         }
     }
 

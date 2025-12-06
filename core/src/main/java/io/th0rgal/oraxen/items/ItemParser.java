@@ -83,11 +83,12 @@ public class ItemParser {
         oraxenMeta = templateItem != null ? templateItem.oraxenMeta : new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
             final ConfigurationSection packSection = section.getConfigurationSection("Pack");
-            oraxenMeta.setPackInfos(packSection);
-            assert packSection != null;
-            if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID.put(section.getName(),
-                        new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
+            if (packSection != null) {
+                oraxenMeta.setPackInfos(packSection);
+                if (packSection.isInt("custom_model_data"))
+                    MODEL_DATAS_BY_ID.put(section.getName(),
+                            new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
+            }
         }
     }
 

@@ -80,7 +80,9 @@ public class ResourcePack {
         try {
             Files.deleteIfExists(pack.toPath());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logError("Failed to delete existing resource pack file");
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
         }
 
         extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
@@ -143,7 +145,9 @@ public class ResourcePack {
 
             Collections.sort(output);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logError("Failed to gather pack files for compression");
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
         }
 
         Set<String> malformedTextures = new HashSet<>();

@@ -363,8 +363,10 @@ public class FurnitureMechanic extends Mechanic {
     public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
         if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
-        assert location.getWorld() != null;
-        assert location.getWorld() != null;
+        if (location.getWorld() == null) {
+            Logs.logError("Failed to spawn furniture: location world is null");
+            return null;
+        }
 
         Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
@@ -749,8 +751,12 @@ public class FurnitureMechanic extends Mechanic {
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         Location location = pdc.get(ROOT_KEY, DataType.LOCATION);
         if (location == null || !location.isWorldLoaded()) return null;
-        assert location.getWorld() != null;
-        for (Entity baseEntity : location.getWorld().getNearbyEntities(location, 0.1, 0.1, 0.1)) {
+        World world = location.getWorld();
+        if (world == null) {
+            Logs.logWarning("Furniture location world became null during operation");
+            return null;
+        }
+        for (Entity baseEntity : world.getNearbyEntities(location, 0.1, 0.1, 0.1)) {
             if (baseEntity.getType() != getFurnitureEntityType()) continue;
             if (!OraxenFurniture.isFurniture(baseEntity)) continue;
             // Update to new format
