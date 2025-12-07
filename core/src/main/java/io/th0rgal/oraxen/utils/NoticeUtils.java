@@ -13,10 +13,10 @@ public class NoticeUtils {
     }
 
     public static void devNotice() {
-        Logs.logInfo("You are using a development build of Oraxen.");
-        Logs.logInfo("Development builds may include unfinished features.");
-        Logs.logInfo("As such they are not guaranteed to be stable.");
-        Logs.logInfo("Please do not use this build on production enviroments.");
+        Logs.logError("You are using a development build of Oraxen.");
+        Logs.logWarning("Development builds may include unfinished features.");
+        Logs.logWarning("As such they are not guaranteed to be stable.");
+        Logs.logWarning("Please do not share this build.");
     }
 
     public static void leakNotice() {
