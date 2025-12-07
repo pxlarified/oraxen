@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.NotNull;
 
@@ -148,7 +149,7 @@ public class VersionUtil {
     }
 
     public static boolean isDevBuild() {
-        return getCurrentVersion().endsWith("-DEV");
+        return OraxenPlugin.get().getDescription().getVersion().endsWith("-DEV");
     }
 
     public static boolean isValidCompiler() {
