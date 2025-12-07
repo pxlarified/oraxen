@@ -136,10 +136,15 @@ public class OraxenPlugin extends JavaPlugin {
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
-        if (VersionUtil.isCompiled())
-            NoticeUtils.compileNotice();
-        if (VersionUtil.isLeaked())
-            NoticeUtils.leakNotice();
+        if (VersionUtil.isDevBuild()) {
+            NoticeUtils.devNotice();
+        } else {
+            if (VersionUtil.isCompiled())
+                NoticeUtils.compileNotice();
+
+            if (VersionUtil.isLeaked())
+                NoticeUtils.leakNotice();
+        }
     }
 
     private void postLoading() {

@@ -12,6 +12,13 @@ public class NoticeUtils {
         Logs.logWarning("Consider purchasing Oraxen on SpigotMC or Polymart for access to the full version.");
     }
 
+    public static void devNotice() {
+        Logs.logInfo("You are using a development build of Oraxen.");
+        Logs.logInfo("Development builds may include unfinished features.");
+        Logs.logInfo("As such they are not guaranteed to be stable.");
+        Logs.logInfo("Please do not use this build on production enviroments.");
+    }
+
     public static void leakNotice() {
         Logs.logError("This is a leaked version of Oraxen");
         Logs.logError("Piracy is not supported, shutting down plugin.");

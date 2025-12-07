@@ -147,6 +147,10 @@ public class VersionUtil {
         return leaked;
     }
 
+    public static boolean isDevBuild() {
+        return getCurrentVersion().endsWith("-DEV");
+    }
+
     public static boolean isValidCompiler() {
         List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
         return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase(Locale.ROOT));
