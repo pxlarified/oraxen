@@ -13,6 +13,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.dimmablelight.DimmableLightMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.dimmablelight.DimmableLightMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -428,7 +430,7 @@ public class FurnitureMechanic extends Mechanic {
                     interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
-                if (light.hasLightLevel()) light.createBlockLight(block);
+                createLightForFurniture(block, entity);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
@@ -446,7 +448,47 @@ public class FurnitureMechanic extends Mechanic {
                 interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
             }
-            if (light.hasLightLevel()) light.createBlockLight(location.getBlock());
+            createLightForFurniture(location.getBlock(), entity);
+        }
+    }
+
+    private void createLightForFurniture(Block block, Entity entity) {
+        // Check for dimmable light first, then regular light
+        DimmableLightMechanic dimmableLight = null;
+        if (DimmableLightMechanicFactory.getInstance() != null) {
+            Mechanic mechanic = DimmableLightMechanicFactory.getInstance().getMechanic(getItemID());
+            if (mechanic instanceof DimmableLightMechanic) {
+                dimmableLight = (DimmableLightMechanic) mechanic;
+            }
+        }
+        if (dimmableLight != null) {
+            int defaultLevel = dimmableLight.getDefaultLightLevel();
+            PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+            pdc.set(DimmableLightMechanic.DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, defaultLevel);
+            if (entity != null) {
+                entity.getPersistentDataContainer().set(DimmableLightMechanic.DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, defaultLevel);
+            }
+            if (defaultLevel > 0) {
+                dimmableLight.getBaseLight().createBlockLight(block);
+            }
+        } else if (light.hasLightLevel()) {
+            light.createBlockLight(block);
+        }
+    }
+
+    private void removeLightForFurniture(Block block) {
+        // Check for dimmable light first, then regular light
+        DimmableLightMechanic dimmableLight = null;
+        if (DimmableLightMechanicFactory.getInstance() != null) {
+            Mechanic mechanic = DimmableLightMechanicFactory.getInstance().getMechanic(getItemID());
+            if (mechanic instanceof DimmableLightMechanic) {
+                dimmableLight = (DimmableLightMechanic) mechanic;
+            }
+        }
+        if (dimmableLight != null) {
+            dimmableLight.getBaseLight().removeBlockLight(block);
+        } else if (light.hasLightLevel()) {
+            light.removeBlockLight(block);
         }
     }
 
@@ -598,7 +640,7 @@ public class FurnitureMechanic extends Mechanic {
 
             block.setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
-            if (light.hasLightLevel()) light.removeBlockLight(block);
+            removeLightForFurniture(block);
         }
         removeBaseEntity(baseEntity);
     }
@@ -610,12 +652,12 @@ public class FurnitureMechanic extends Mechanic {
     private void removeBaseEntity(Entity baseEntity) {
         if (baseEntity == null) return;
         removeSubEntitiesOfFurniture(baseEntity);
-        if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
+        removeLightForFurniture(baseEntity.getLocation().getBlock());
         if (!baseEntity.isDead()) baseEntity.remove();
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
-        if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
+        removeLightForFurniture(baseEntity.getLocation().getBlock());
         if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
 
         if (OraxenPlugin.supportsDisplayEntities) {

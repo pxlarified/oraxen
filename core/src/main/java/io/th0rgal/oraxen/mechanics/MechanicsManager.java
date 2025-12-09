@@ -79,6 +79,7 @@ public class MechanicsManager {
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
+        registerFactory("dimmable_light", io.th0rgal.oraxen.mechanics.provided.gameplay.dimmablelight.DimmableLightMechanicFactory::new);
 
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);

@@ -7,6 +7,8 @@ import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.dimmablelight.DimmableLightMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.dimmablelight.DimmableLightMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -166,7 +168,21 @@ public class OraxenBlocks {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
 
-        if (mechanic.hasLight()) {
+        // Check for dimmable light first, then regular light
+        DimmableLightMechanic dimmableLight = null;
+        if (DimmableLightMechanicFactory.getInstance() != null) {
+            Mechanic dimmableMechanic = DimmableLightMechanicFactory.getInstance().getMechanic(mechanic.getItemID());
+            if (dimmableMechanic instanceof DimmableLightMechanic) {
+                dimmableLight = (DimmableLightMechanic) dimmableMechanic;
+            }
+        }
+        if (dimmableLight != null) {
+            int defaultLevel = dimmableLight.getDefaultLightLevel();
+            pdc.set(DimmableLightMechanic.DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, defaultLevel);
+            if (defaultLevel > 0) {
+                dimmableLight.getBaseLight().createBlockLight(block);
+            }
+        } else if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);
         }
 
@@ -200,8 +216,24 @@ public class OraxenBlocks {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (mechanic.hasLight())
+        // Check for dimmable light first, then regular light
+        DimmableLightMechanic dimmableLight = null;
+        if (DimmableLightMechanicFactory.getInstance() != null) {
+            Mechanic dimmableMechanic = DimmableLightMechanicFactory.getInstance().getMechanic(mechanic.getItemID());
+            if (dimmableMechanic instanceof DimmableLightMechanic) {
+                dimmableLight = (DimmableLightMechanic) dimmableMechanic;
+            }
+        }
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        if (dimmableLight != null) {
+            int defaultLevel = dimmableLight.getDefaultLightLevel();
+            pdc.set(DimmableLightMechanic.DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, defaultLevel);
+            if (defaultLevel > 0) {
+                dimmableLight.getBaseLight().createBlockLight(block);
+            }
+        } else if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);
+        }
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             if (sapling != null && sapling.canGrowNaturally())
@@ -279,7 +311,19 @@ public class OraxenBlocks {
         }
         if (drop != null) drop.spawns(loc, itemInHand);
 
-        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
+        // Check for dimmable light first, then regular light
+        DimmableLightMechanic dimmableLight = null;
+        if (DimmableLightMechanicFactory.getInstance() != null) {
+            Mechanic dimmableMechanic = DimmableLightMechanicFactory.getInstance().getMechanic(mechanic.getItemID());
+            if (dimmableMechanic instanceof DimmableLightMechanic) {
+                dimmableLight = (DimmableLightMechanic) dimmableMechanic;
+            }
+        }
+        if (dimmableLight != null) {
+            dimmableLight.getBaseLight().removeBlockLight(block);
+        } else if (mechanic.hasLight()) {
+            mechanic.getLight().removeBlockLight(block);
+        }
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
@@ -311,7 +355,19 @@ public class OraxenBlocks {
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
+        // Check for dimmable light first, then regular light
+        DimmableLightMechanic dimmableLight = null;
+        if (DimmableLightMechanicFactory.getInstance() != null) {
+            Mechanic dimmableMechanic = DimmableLightMechanicFactory.getInstance().getMechanic(mechanic.getItemID());
+            if (dimmableMechanic instanceof DimmableLightMechanic) {
+                dimmableLight = (DimmableLightMechanic) dimmableMechanic;
+            }
+        }
+        if (dimmableLight != null) {
+            dimmableLight.getBaseLight().removeBlockLight(block);
+        } else if (mechanic.hasLight()) {
+            mechanic.getLight().removeBlockLight(block);
+        }
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
