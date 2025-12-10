@@ -47,10 +47,6 @@ public class DimmableLightMechanicListener implements Listener {
         Mechanic mechanic = factory.getMechanic(furnitureMechanic.getItemID());
         if (!(mechanic instanceof DimmableLightMechanic dimmableLight)) return;
 
-        // Check for conflicts with storage/seat/rotation
-        boolean hasConflict = furnitureMechanic.isStorage() || furnitureMechanic.hasSeat() || furnitureMechanic.isRotatable();
-        if (hasConflict && !player.isSneaking()) return;
-
         handleDimmableLight(player, block, baseEntity, dimmableLight, player.isSneaking());
     }
 
@@ -61,7 +57,6 @@ public class DimmableLightMechanicListener implements Listener {
         NoteBlockMechanic noteBlockMechanic = event.getMechanic();
 
         if (!ProtectionLib.canInteract(player, block.getLocation())) return;
-        if (player.isSneaking() && (noteBlockMechanic.isStorage() || noteBlockMechanic.hasClickActions())) return;
 
         Mechanic mechanic = factory.getMechanic(noteBlockMechanic.getItemID());
         if (!(mechanic instanceof DimmableLightMechanic dimmableLight)) return;
@@ -105,10 +100,7 @@ public class DimmableLightMechanicListener implements Listener {
             Entity baseEntity = furnitureMechanic.getBaseEntity(block);
             Mechanic mechanic = factory.getMechanic(furnitureMechanic.getItemID());
             if (mechanic instanceof DimmableLightMechanic dimmableLight) {
-                boolean hasConflict = furnitureMechanic.isStorage() || furnitureMechanic.hasSeat() || furnitureMechanic.isRotatable();
-                if (!hasConflict || player.isSneaking()) {
-                    handleDimmableLight(player, block, baseEntity, dimmableLight, player.isSneaking());
-                }
+                handleDimmableLight(player, block, baseEntity, dimmableLight, player.isSneaking());
                 return;
             }
         }
