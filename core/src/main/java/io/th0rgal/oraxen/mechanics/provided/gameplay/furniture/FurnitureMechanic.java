@@ -486,9 +486,19 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
         if (dimmableLight != null) {
-            dimmableLight.getBaseLight().removeBlockLight(block);
+            removeDimmableLightBlocks(block);
         } else if (light.hasLightLevel()) {
             light.removeBlockLight(block);
+        }
+    }
+
+    private void removeDimmableLightBlocks(Block block) {
+        BlockFace[] faces = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.SELF};
+        for (BlockFace face : faces) {
+            Block relative = block.getRelative(face);
+            if (relative.getType() == Material.LIGHT) {
+                relative.setType(Material.AIR);
+            }
         }
     }
 

@@ -320,7 +320,7 @@ public class OraxenBlocks {
             }
         }
         if (dimmableLight != null) {
-            dimmableLight.getBaseLight().removeBlockLight(block);
+            removeDimmableLightBlocks(block);
         } else if (mechanic.hasLight()) {
             mechanic.getLight().removeBlockLight(block);
         }
@@ -364,7 +364,7 @@ public class OraxenBlocks {
             }
         }
         if (dimmableLight != null) {
-            dimmableLight.getBaseLight().removeBlockLight(block);
+            removeDimmableLightBlocks(block);
         } else if (mechanic.hasLight()) {
             mechanic.getLight().removeBlockLight(block);
         }
@@ -393,6 +393,16 @@ public class OraxenBlocks {
                     case MUSHROOM_STEM -> getBlockMechanic(location.getBlock());
                     default -> null;
                 };
+    }
+
+    private static void removeDimmableLightBlocks(Block block) {
+        BlockFace[] faces = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.SELF};
+        for (BlockFace face : faces) {
+            Block relative = block.getRelative(face);
+            if (relative.getType() == Material.LIGHT) {
+                relative.setType(Material.AIR);
+            }
+        }
     }
 
     public static Mechanic getOraxenBlock(BlockData blockData) {

@@ -119,9 +119,14 @@ public class DimmableLightMechanicListener implements Listener {
     }
 
     private void handleDimmableLight(Player player, Block block, Entity entity, DimmableLightMechanic dimmableLight, boolean isSneaking) {
-        PersistentDataContainer pdc = block != null ? BlockHelpers.getPDC(block) : 
-                                      entity != null ? entity.getPersistentDataContainer() : null;
+        // Prefer storing state on the entity so the light level is shared across all barriers of a furniture piece
+        PersistentDataContainer pdc = entity != null ? entity.getPersistentDataContainer()
+                                                     : block != null ? BlockHelpers.getPDC(block) : null;
         if (pdc == null) return;
+
+        Block targetBlock = entity != null && entity.getLocation().getBlock() != null
+            ? entity.getLocation().getBlock()
+            : block;
 
         int currentLevel = pdc.getOrDefault(DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, dimmableLight.getDefaultLightLevel());
         
@@ -137,11 +142,7 @@ public class DimmableLightMechanicListener implements Listener {
         if (newLevel == currentLevel) return;
 
         pdc.set(DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, newLevel);
-        if (entity != null) {
-            entity.getPersistentDataContainer().set(DIMMABLE_LIGHT_LEVEL_KEY, PersistentDataType.INTEGER, newLevel);
-        }
-
-        updateLightLevel(block, entity, newLevel);
+        updateLightLevel(targetBlock, entity, newLevel);
     }
 
     private void updateLightLevel(Block block, Entity entity, int lightLevel) {
