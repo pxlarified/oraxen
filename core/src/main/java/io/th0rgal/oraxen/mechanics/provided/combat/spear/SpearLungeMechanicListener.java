@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.scheduler.TaskScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -143,7 +144,8 @@ public class SpearLungeMechanicListener implements Listener {
         }
 
         // Start a task to monitor charging state
-        BukkitTask task = new ChargeMonitorTask(player, mechanic, hand).runTaskTimer(OraxenPlugin.get(), 1L, 1L);
+        ChargeMonitorTask chargeTask = new ChargeMonitorTask(player, mechanic, hand);
+        BukkitTask task = TaskScheduler.runTaskTimer(player, chargeTask, 1L, 1L);
 
         ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel,
                 originalWalkSpeed);
@@ -191,7 +193,7 @@ public class SpearLungeMechanicListener implements Listener {
     private void performLungeAttack(Player player, SpearLungeMechanic mechanic, double chargePercent) {
         // Suppress default melee damage during lunge
         lungingPlayers.add(player.getUniqueId());
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
+        TaskScheduler.runTaskLater(player,
                 () -> lungingPlayers.remove(player.getUniqueId()), 5L);
 
         Vector direction = player.getLocation().getDirection();

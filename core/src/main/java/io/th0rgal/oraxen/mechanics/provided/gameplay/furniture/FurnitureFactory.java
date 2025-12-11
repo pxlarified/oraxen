@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
+import io.th0rgal.oraxen.utils.scheduler.TaskScheduler;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
@@ -81,14 +82,21 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        BukkitTask task = evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        BukkitTask task = TaskScheduler.runTaskTimer(evolutionTask, 0, evolutionCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), task);
         evolvingFurnitures = true;
     }
 
     public static void unregisterEvolution() {
-        if (evolutionTask != null)
-            evolutionTask.cancel();
+        if (evolutionTask != null) {
+            try {
+                evolutionTask.cancel();
+            } catch (IllegalStateException e) {
+                // Task was not scheduled (e.g., scheduling failed on Folia)
+                // This is fine - just means the task never started
+            }
+        }
+        MechanicsManager.unregisterTasks(instance != null ? instance.getMechanicID() : "furniture");
     }
 
     @Override

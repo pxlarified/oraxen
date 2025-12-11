@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
+import io.th0rgal.oraxen.utils.scheduler.TaskScheduler;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.PacketEventsBreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.ProtocolLibBreakerSystem;
@@ -145,11 +146,11 @@ public class OraxenPlugin extends JavaPlugin {
     private void postLoading() {
         OraxenMetrics.register(this);
         new LU().l();
-        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        TaskScheduler.runTask(() -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
 
         // Auto-generate schema in debug mode (useful for CI/CD)
         if (Settings.DEBUG.toBool()) {
-            Bukkit.getScheduler().runTaskLater(this, () -> {
+            TaskScheduler.runTaskLater(() -> {
                 io.th0rgal.oraxen.utils.schema.SchemaGenerator.generateAndSave();
             }, 20L); // Small delay to ensure everything is loaded
         }

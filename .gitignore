@@ -215,5 +215,7 @@ local.properties
 
 # Based on gitignore.io work
 
+
+.cursor/
 # Test server for schema generation
 test-server/

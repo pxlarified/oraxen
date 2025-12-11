@@ -160,7 +160,6 @@ tasks {
 
         archiveClassifier = null
         oraxenLibs.bundles.libraries.shade.get().forEach {
-            val plugin = it;
             val group = it.group!!
                 .replace("jeff-media", "jeff_media") // they use a different package than the group...
             val parts = group
@@ -209,12 +208,14 @@ tasks {
 }
 
 
+
 bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.18"
+    foliaSupported = true
     authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
     softDepend = listOf(
         "CommandAPI",

@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.scheduler.TaskScheduler;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -111,7 +112,7 @@ public class NoteBlockMechanicListener implements Listener {
             if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
             if (block.getType() != Material.NOTE_BLOCK) return;
             NoteBlock data = (NoteBlock) block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
+            TaskScheduler.runTaskLater(block.getLocation(), () -> block.setBlockData(data, false), 1L);
         }
 
         public void updateAndCheck(Block block) {
@@ -407,16 +408,20 @@ public class NoteBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.NOTE_BLOCK)
+                try {
+                    if (block.getType() != Material.NOTE_BLOCK)
+                        return false;
+
+                    NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+                    if (mechanic == null) return false;
+
+                    if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+                        mechanic = mechanic.getDirectional().getParentMechanic();
+
+                    return mechanic.hasHardness();
+                } catch (Exception e) {
                     return false;
-
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return false;
-
-                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                    mechanic = mechanic.getDirectional().getParentMechanic();
-
-                return mechanic.hasHardness();
+                }
             }
 
             @Override

@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.scheduler.TaskScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
@@ -15,7 +16,7 @@ public class ToggleLightRefreshListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMechanicsRegistered(OraxenNativeMechanicsRegisteredEvent event) {
         // Refresh light for all existing furniture, noteblocks, and stringblocks when mechanics are registered (on load/reload)
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        TaskScheduler.runTaskLater(() -> {
             ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
             if (factory == null) return;
 
