@@ -2,7 +2,7 @@
   "oraxenVersion": "1.199.0",
   "minecraftVersion": "1.21.4",
   "serverVersion": "1.21.4-R0.1-SNAPSHOT",
-  "generatedAt": "2025-12-10T22:12:43.736298497Z",
+  "generatedAt": "2025-12-11T07:26:56.531550103Z",
   "enums": {
     "Material": {
       "values": [
@@ -7129,14 +7129,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7144,17 +7144,17 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "z_block": {
+            "y_block": {
               "type": "string",
-              "description": "Z-axis variant ID"
+              "description": "Y-axis variant ID"
             },
             "parent_block": {
               "type": "string",
               "description": "Parent block ID"
             },
-            "y_block": {
+            "z_block": {
               "type": "string",
-              "description": "Y-axis variant ID"
+              "description": "Z-axis variant ID"
             },
             "x_block": {
               "type": "string",
@@ -7267,16 +7267,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7307,6 +7307,26 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
+            "brightness": {
+              "type": "object",
+              "description": "Light levels",
+              "properties": {
+                "block": {
+                  "type": "integer",
+                  "description": "Block light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                },
+                "sky": {
+                  "type": "integer",
+                  "description": "Sky light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                }
+              }
+            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -7321,26 +7341,6 @@
                 "GROUND",
                 "FIXED"
               ]
-            },
-            "brightness": {
-              "type": "object",
-              "description": "Light levels",
-              "properties": {
-                "sky": {
-                  "type": "integer",
-                  "description": "Sky light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                },
-                "block": {
-                  "type": "integer",
-                  "description": "Block light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                }
-              }
             }
           }
         },
@@ -7348,14 +7348,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7363,10 +7363,6 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -7376,6 +7372,10 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
+            },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             },
             "rows": {
               "type": "integer",
@@ -7739,14 +7739,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7754,19 +7754,19 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "min_light": {
-              "type": "integer",
-              "description": "Minimum light level to grow",
-              "default": 9,
-              "min": 0,
-              "max": 15
-            },
             "grow_chance": {
               "type": "number",
               "description": "Growth chance per check",
               "default": 0.1,
               "min": 0.0,
               "max": 1.0
+            },
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
             },
             "grow_block": {
               "type": "string",
@@ -7780,16 +7780,16 @@
       "category": "farming",
       "description": "Allows breaking bedrock (requires ProtocolLib)",
       "properties": {
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
-        },
         "probability": {
           "type": "number",
           "description": "Chance to break (0-1)",
           "min": 0,
           "default": 1.0
+        },
+        "delay": {
+          "type": "integer",
+          "description": "Break delay in ticks",
+          "min": 0
         }
       }
     },
