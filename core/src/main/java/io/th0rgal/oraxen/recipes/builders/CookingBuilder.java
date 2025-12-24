@@ -31,7 +31,15 @@ public class CookingBuilder extends RecipeBuilder {
     public void saveRecipe(String name, String permission) {
 
         ItemStack[] content = getInventory().getContents();
-        ConfigurationSection newCraftSection = getConfig().createSection(name);
+        ConfigurationSection newCraftSection;
+        if (getConfig().isConfigurationSection(name)) {
+            newCraftSection = getConfig().getConfigurationSection(name);
+            newCraftSection.set("result", null);
+            newCraftSection.set("input", null);
+        } else {
+            newCraftSection = getConfig().createSection(name);
+        }
+        
         setSerializedItem(newCraftSection.createSection("result"), content[2]);
         setSerializedItem(newCraftSection.createSection("input"), content[0]);
         newCraftSection.set("cookingTime", cookingTime);

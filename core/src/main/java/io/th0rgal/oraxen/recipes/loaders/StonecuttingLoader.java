@@ -12,10 +12,14 @@ public class StonecuttingLoader extends RecipeLoader {
 	@Override
 	public void registerRecipe() {
 		ConfigurationSection inputSection = getSection().getConfigurationSection("input");
-		if (inputSection == null) return;
+		if (inputSection == null) throw new NullPointerException("Input section is missing");
 		RecipeChoice recipeChoice = getRecipeChoice(inputSection);
-		if (recipeChoice == null) return;
-		StonecuttingRecipe recipe = new StonecuttingRecipe(getNamespacedKey(), getResult(), recipeChoice);
+		if (recipeChoice == null) throw new NullPointerException("Input ingredient is invalid");
+
+		var result = getResult();
+		if (result == null) throw new NullPointerException("Result is null or invalid");
+
+		StonecuttingRecipe recipe = new StonecuttingRecipe(getNamespacedKey(), result, recipeChoice);
 		loadRecipe(recipe);
 	}
 }

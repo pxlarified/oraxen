@@ -110,6 +110,9 @@ public class RecipesManager {
             }
         } catch (NullPointerException exception) {
             Message.BAD_RECIPE.log(AdventureUtils.tagResolver("recipe", recipeSection.getName()));
+        } catch (Exception exception) {
+            Logs.logError("Failed to load recipe '" + recipeSection.getName() + "' from " + configFile.getName() + ": " + exception.getMessage());
+            exception.printStackTrace();
         }
     }
 }

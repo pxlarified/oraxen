@@ -28,11 +28,27 @@ public class StonecuttingBuilder extends RecipeBuilder {
     public void saveRecipe(String name, String permission) {
 
         ItemStack input = getInventory().getItem(0);
+        
+        // Clear old stonecutting recipes with this name pattern
+        var config = getConfig();
+        config.getKeys(false).stream()
+                .filter(key -> key.startsWith(name + "_"))
+                .forEach(key -> config.set(key, null));
+        
         int recipeCount = 0;
         for (int i = 1; i < getInventory().getSize(); i++) {
             ItemStack result = getInventory().getItem(i);
             if (result == null) continue;
-            ConfigurationSection newCraftSection = getConfig().createSection(name + "_" + recipeCount);
+            String recipeKey = name + "_" + recipeCount;
+            ConfigurationSection newCraftSection;
+            if (config.isConfigurationSection(recipeKey)) {
+                newCraftSection = config.getConfigurationSection(recipeKey);
+                newCraftSection.set("result", null);
+                newCraftSection.set("input", null);
+            } else {
+                newCraftSection = config.createSection(recipeKey);
+            }
+            
             setSerializedItem(newCraftSection.createSection("result"), result);
             setSerializedItem(newCraftSection.createSection("input"), input);
 

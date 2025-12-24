@@ -14,10 +14,14 @@ public class ShapelessLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getResult());
-        ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
+        var result = getResult();
+        if (result == null) throw new NullPointerException("Result is null or invalid");
 
-        for (String ingredientLetter : Objects.requireNonNull(ingredientsSection).getKeys(false)) {
+        ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), result);
+        ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
+        if (ingredientsSection == null) throw new NullPointerException("Ingredients section is missing");
+
+        for (String ingredientLetter : ingredientsSection.getKeys(false)) {
             ConfigurationSection itemSection = ingredientsSection.getConfigurationSection(ingredientLetter);
             if (itemSection == null) continue;
             RecipeChoice ingredient = getRecipeChoice(itemSection);

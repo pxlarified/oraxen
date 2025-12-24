@@ -26,7 +26,15 @@ public class ShapelessBuilder extends WorkbenchBuilder {
             if (content[i] != null)
                 items.put(content[i], items.getOrDefault(content[i], 0) + 1);
 
-        ConfigurationSection newCraftSection = getConfig().createSection(name);
+        ConfigurationSection newCraftSection;
+        if (getConfig().isConfigurationSection(name)) {
+            newCraftSection = getConfig().getConfigurationSection(name);
+            newCraftSection.set("result", null);
+            newCraftSection.set("ingredients", null);
+        } else {
+            newCraftSection = getConfig().createSection(name);
+        }
+        
         setSerializedItem(newCraftSection.createSection("result"), content[0]);
         ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
 

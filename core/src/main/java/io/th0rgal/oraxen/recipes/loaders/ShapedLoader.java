@@ -15,14 +15,21 @@ public class ShapedLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        ShapedRecipe recipe = new ShapedRecipe(getNamespacedKey(), getResult());
+        var result = getResult();
+        if (result == null) throw new NullPointerException("Result is null or invalid");
+
+        ShapedRecipe recipe = new ShapedRecipe(getNamespacedKey(), result);
 
         List<String> shape = getSection().getStringList("shape");
+        if (shape.isEmpty()) throw new IllegalArgumentException("Shape is empty");
         recipe.shape(shape.toArray(new String[0]));
+
         ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
-        for (String ingredientLetter : Objects.requireNonNull(ingredientsSection).getKeys(false)) {
+        if (ingredientsSection == null) throw new NullPointerException("Ingredients section is missing");
+
+        for (String ingredientLetter : ingredientsSection.getKeys(false)) {
             ConfigurationSection itemSection = ingredientsSection.getConfigurationSection(ingredientLetter);
-            if (itemSection  == null) continue;
+            if (itemSection == null) continue;
             RecipeChoice recipeChoice = getRecipeChoice(itemSection);
             if (recipeChoice == null) continue;
             recipe.setIngredient(ingredientLetter.charAt(0), recipeChoice);
